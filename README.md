@@ -27,7 +27,7 @@ $ pipenv shell
 
 Change into directory /src.    
 
-The model is trained on aerial images (with 144000 steps for pretraining, 410000 steps for training on 72x72 pixel image crops). 
+The model is trained on aerial images (with 144000 steps for pretraining and 410000 steps for training on 72x72 pixel image crops). 
 
 - Use inference.py if you like to enhance images of this type (change the script accordingly to your needs).
 - If you like to train your own image types
