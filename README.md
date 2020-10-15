@@ -1,2 +1,2 @@
-# single-image-keras-SRGAN
+# single-image-SRGAN
 Enhance single images with super-resolution GAN.
