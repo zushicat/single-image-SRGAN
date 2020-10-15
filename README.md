@@ -5,6 +5,9 @@ The stored (trained) model (/model/image_generator_model.h5) aims to improve aer
 Since this is an universal approach, you can train your own model on image types you intend to improve.
 
 ### Results
+
+![input image 1](readme_images/input_1.png?raw=true)
+
 ![](https://github.com/zushicat/single-image-SRGAN/tree/main/readme_images/input_1)
 ![](https://github.com/zushicat/single-image-SRGAN/tree/main/readme_images/output_1 =400x)
 ![](https://github.com/zushicat/single-image-SRGAN/tree/main/readme_images/input_2)
