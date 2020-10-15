@@ -17,6 +17,7 @@ model/weights/*
 
 test_predictions/fine_tune/*/
 test_predictions/pre_train/*/
+test_predictions/model_predictions/*/
 test_predictions/pre_train_old
 
 !**/README.md
