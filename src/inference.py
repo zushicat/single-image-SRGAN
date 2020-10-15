@@ -16,7 +16,7 @@ if __name__ == "__main__":
     data_loader = DataLoader()  # makes your life easier 
 
     # ****
-    # my fixed test image collection
+    # a fixed collection of controle images
     # ***
     file_names = [
         "354400_5643700_354500_5643800.png",
