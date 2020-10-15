@@ -13,12 +13,12 @@ Input images             |  Output images
 
 ### Usage
 Install environment and change into shell
-'''
+```
 $ pipenv install
-'''
-'''
+```
+```
 $ pipenv shell
-'''
+```
 (Leave shell with "exit".)    
 
 Change into directory /src.    
