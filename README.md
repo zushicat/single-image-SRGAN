@@ -6,12 +6,11 @@ Since this is an universal approach, you can train your own model on image types
 
 ### Results
 
-![input image 1](readme_images/input_1.png?raw=true)
+input examples             |  output examples
+:-------------------------:|:-------------------------:
+![input image 1](readme_images/input_1.png?raw=true) | ![output image 1](readme_images/output_1.png?raw=true)
+![input image 2](readme_images/input_2.png?raw=true) | ![output image 2](readme_images/output_2.png?raw=true)
 
-![](https://github.com/zushicat/single-image-SRGAN/tree/main/readme_images/input_1)
-![](https://github.com/zushicat/single-image-SRGAN/tree/main/readme_images/output_1 =400x)
-![](https://github.com/zushicat/single-image-SRGAN/tree/main/readme_images/input_2)
-![](https://github.com/zushicat/single-image-SRGAN/tree/main/readme_images/output_2 =400x)
 
 
 ### Usage
