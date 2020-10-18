@@ -14,7 +14,7 @@ from PIL import Image
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 
 
-BASE_PATH = "/Users/karin/programming/data/ortho-images/cologne_2019_400_400"
+BASE_PATH = "/Users/karin/programming/data/ortho-images/ortho_2019_1600_1600"
 
 
 class DataLoader():
@@ -31,6 +31,47 @@ class DataLoader():
         self.crop_size = crop_size
         self.scale_factor = scale_factor
 
+        self.image_paths = glob(f'{BASE_PATH}/**/*.png', recursive=True)  # all image paths from BASE_PATH or it's subdirs
+        self.images = []
+
+        print("Load high-res imgages...")
+        self.load_images()
+        print("Images loaded")
+
+
+    def load_images(self):
+        '''
+        To reduce computation time when getting augmented image crops, divide each high res image in advance
+        into slightly bigger crops than used by augmentation
+        '''
+        dist_to_image_border = 20
+        tmp_crop_size = self.crop_size * 2 + dist_to_image_border
+        
+        # ***
+        # get a portion of images to reduce initial computation time
+        # should be sufficient if i.e. 9*9 (number of crops) * 200 (random images) = 16200 copped images
+        # ***
+        random_img_path_selection = np.random.choice(self.image_paths, size=200)
+
+        # ***
+        # get the (bigger) image crops of all high res images
+        # ***
+        for img_path in random_img_path_selection:
+            img = load_img(img_path)  # type: PIL image
+
+            upper_left_x = 0
+            upper_left_y = 0
+            for i in range(img.width//tmp_crop_size):
+                lower_right_x = upper_left_x + tmp_crop_size
+                for j in range(img.height//tmp_crop_size):
+                    lower_right_y = upper_left_y + tmp_crop_size
+                    
+                    self.images.append(img.crop((upper_left_x, upper_left_y, lower_right_x, lower_right_y)))
+                    
+                    upper_left_y += tmp_crop_size
+                upper_left_x += tmp_crop_size
+
+    
     def crop_image(self, img):
         dist_to_image_border = 20
         upper_left = np.random.randint(low=dist_to_image_border, high=img.width-dist_to_image_border-self.crop_size)
@@ -39,18 +80,21 @@ class DataLoader():
 
 
     def load_data(self, batch_size=1, is_testing=False):
-        image_dir = "val_HR"
-        if is_testing is False:
-            image_dir = "train_HR"
-        
-        images_path = glob(f'{BASE_PATH}/**/*.png', recursive=True)  # all image paths from BASE_PATH or it's subdirs
-        batch_images = np.random.choice(images_path, size=batch_size)
+        # ***
+        # get a batch of hr image crops
+        # ***
+        batch_images = []
+        batch_images_indice = np.random.choice(len(self.images), size=batch_size)  # type: PIL image
 
+        for index in batch_images_indice:
+            batch_images.append(self.images[index])
+
+        # ***
+        # augment and store this crops of this batch
+        # ***
         imgs_hr = []
         imgs_lr = []
-        for img_hr_path in batch_images:
-            img_hr = load_img(img_hr_path)  # type: PIL image
-            
+        for img_hr in batch_images:
             # ***
             # image augmentation
             # ***
@@ -64,6 +108,10 @@ class DataLoader():
                 # img_hr.show()  # debug
             
             img_lr = img_hr.resize((self.crop_size//self.scale_factor, self.crop_size//self.scale_factor), Image.BICUBIC)
+            # img_lr.show()  # debug
+
+            # img_lr = img_lr.resize((img_lr.width//2, img_lr.height//2))
+            # img_lr = img_lr.resize((img_lr.width*2, img_lr.height*2))
             # img_lr.show()  # debug
 
             imgs_hr.append(np.asarray(img_hr))
@@ -88,5 +136,5 @@ class DataLoader():
 
 if __name__ == "__main__":
     data_loader = DataLoader(crop_size=72, scale_factor=4)
-    imgs_hr, imgs_lr = data_loader.load_data()
-    print(imgs_lr[0].shape, imgs_hr[0].shape)
+    # imgs_hr, imgs_lr = data_loader.load_data()
+    # print(imgs_lr[0].shape, imgs_hr[0].shape)
