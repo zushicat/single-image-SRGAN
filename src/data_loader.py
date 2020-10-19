@@ -34,10 +34,6 @@ class DataLoader():
         self.image_paths = glob(f'{BASE_PATH}/**/*.png', recursive=True)  # all image paths from BASE_PATH or it's subdirs
         self.images = []
 
-        print("Load high-res imgages...")
-        self.load_images()
-        print("Images loaded")
-
 
     def load_images(self):
         '''
@@ -59,17 +55,24 @@ class DataLoader():
         for img_path in random_img_path_selection:
             img = load_img(img_path)  # type: PIL image
 
-            upper_left_x = 0
-            upper_left_y = 0
-            for i in range(img.width//tmp_crop_size):
-                lower_right_x = upper_left_x + tmp_crop_size
-                for j in range(img.height//tmp_crop_size):
-                    lower_right_y = upper_left_y + tmp_crop_size
-                    
-                    self.images.append(img.crop((upper_left_x, upper_left_y, lower_right_x, lower_right_y)))
-                    
-                    upper_left_y += tmp_crop_size
-                upper_left_x += tmp_crop_size
+            left = 0
+            upper = 0
+            right = tmp_crop_size
+            lower = tmp_crop_size
+            
+            for _ in range(img.height//tmp_crop_size):  # each row
+                for _ in range(img.width//tmp_crop_size):  # each column
+                    self.images.append(img.crop((left, upper, right, lower)))
+
+                    left += tmp_crop_size
+                    right += tmp_crop_size
+
+                # line done
+                left = 0
+                right = tmp_crop_size
+
+                upper += tmp_crop_size
+                lower += tmp_crop_size
 
     
     def crop_image(self, img):
@@ -81,6 +84,14 @@ class DataLoader():
 
     def load_data(self, batch_size=1, is_testing=False):
         # ***
+        # initial image load
+        # ***
+        if len(self.images) == 0:
+            print("Load high-res imgages...")
+            self.load_images()
+            print("Images loaded")
+
+        # ***
         # get a batch of hr image crops
         # ***
         batch_images = []
@@ -88,7 +99,7 @@ class DataLoader():
 
         for index in batch_images_indice:
             batch_images.append(self.images[index])
-
+        
         # ***
         # augment and store this crops of this batch
         # ***
@@ -105,13 +116,14 @@ class DataLoader():
                 img_hr = Image.fromarray(augmented_img_np_array)
 
                 img_hr = self.crop_image(img_hr)
-                # img_hr.show()  # debug
+                #img_hr.show()  # debug
             
             img_lr = img_hr.resize((self.crop_size//self.scale_factor, self.crop_size//self.scale_factor), Image.BICUBIC)
             # img_lr.show()  # debug
 
-            # img_lr = img_lr.resize((img_lr.width//2, img_lr.height//2))
-            # img_lr = img_lr.resize((img_lr.width*2, img_lr.height*2))
+            # reduce quality of incoming image (approx. how a real low-res image would look like)
+            img_lr = img_lr.resize((img_lr.width//2, img_lr.height//2), Image.BICUBIC)  # downscale
+            img_lr = img_lr.resize((img_lr.width*2, img_lr.height*2))  # upscale again
             # img_lr.show()  # debug
 
             imgs_hr.append(np.asarray(img_hr))
@@ -126,15 +138,16 @@ class DataLoader():
         return imgs_hr, imgs_lr
 
 
-    def load_single_image(self, file_path, size):
+    def load_single_image(self, file_path, size=None):
         img = Image.open(file_path)
-        img = img.resize((size, size))
+        if size is not None:
+            img = img.resize((size, size))
         img_np_array = [np.asarray(img)]
         return np.array(img_np_array) / 127.5 - 1.
 
 
 
 if __name__ == "__main__":
-    data_loader = DataLoader(crop_size=72, scale_factor=4)
-    # imgs_hr, imgs_lr = data_loader.load_data()
+    data_loader = DataLoader(crop_size=96, scale_factor=4)
+    imgs_hr, imgs_lr = data_loader.load_data()
     # print(imgs_lr[0].shape, imgs_hr[0].shape)
