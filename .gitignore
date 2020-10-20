@@ -10,14 +10,18 @@ __pycache__/
 Pipfile.lock
 
 model/*.txt
+model/image_generator_model_0.h5
 
+model/checkpoints/fine_tune_0
 model/checkpoints/fine_tune/*
 model/checkpoints/pre_train/*
 model/weights/*
 
+test_predictions/fine_tune_0
 test_predictions/fine_tune/*/
 test_predictions/pre_train/*/
 test_predictions/model_predictions/*
+test_predictions/model_predictions_0
 test_predictions/pre_train_old
 
 !**/README.md

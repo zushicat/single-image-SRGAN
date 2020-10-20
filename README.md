@@ -1,7 +1,7 @@
 # single-image-SRGAN
 Enhance single images with super-resolution GAN.
 
-The stored (trained) model (/model/image_generator_model.h5) aims to improve aerial photographs of average/poor quality.   
+The stored (trained) model (/model/image_generator_model.h5) aims to improve aerial photographs.   
 Since this is an universal approach, you can train your own model on image types you intend to improve.
 
 

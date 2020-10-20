@@ -51,7 +51,7 @@ from tensorflow.keras.applications import VGG19
 from tensorflow.keras.applications.vgg19 import preprocess_input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.optimizers.schedules import ExponentialDecay
+from tensorflow.keras.optimizers.schedules import PiecewiseConstantDecay
 from tensorflow.keras.losses import BinaryCrossentropy, MeanSquaredError
 
 import numpy as np
@@ -64,10 +64,10 @@ GENERATOR_MODEL = "../model/image_generator_model.h5"
 PRETRAINED_GENERATOR_CHECKPOINT_DIR = "../model/checkpoints/pre_train"
 FINE_TUNE_CHECKPOINT_DIR = "../model/checkpoints/fine_tune"
 
-IMG_DIR_VAL_LR = "/Users/karin/programming/SRGAN/Keras-Gan/train_test_images/images/val_LR"
+IMG_DIR_VAL_LR = "/Users/karin/programming/SRGAN/Keras-Gan/train_test_images/images/default_test_images/lr_2"
 IMG_DIR_PREDICTED = "../test_predictions"
 
-HR_CROPPED_IMG_SIZE = 72  # 96 is better regarding quality, but, well, for the sake of speed...
+HR_CROPPED_IMG_SIZE = 96
 SCALE_FACTOR = 4
 
 LEARNING_RATE = 1e-4
@@ -90,7 +90,7 @@ class Utils():
             return save_img_dir
         
         def resolve_single_image(lr_file_path):
-            lr_img = data_loader.load_single_image(lr_file_path, 100)
+            lr_img = data_loader.load_single_image(lr_file_path, size=None)
             generated_hr = model.generator.predict(lr_img)
             generated_hr = 0.5 * generated_hr + 0.5
             return Image.fromarray((np.uint8(generated_hr*255)[0])) 
@@ -241,7 +241,7 @@ class Pretrainer():
         self.checkpoint_manager = tf.train.CheckpointManager(
             checkpoint=self.checkpoint,
             directory=PRETRAINED_GENERATOR_CHECKPOINT_DIR,
-            max_to_keep=3
+            max_to_keep=1
         )
 
         self.restore_checkpoint()
@@ -335,17 +335,19 @@ class Trainer():
         # necessary to keep all values (i.e. optimizer) when interrupting & resuming training
         # use scheduler with optimizer
         # ***
+        learning_rate = PiecewiseConstantDecay(boundaries=[100000], values=[1e-4, 1e-5]))
+
         self.checkpoint = tf.train.Checkpoint(
             step=tf.Variable(0),
-            optimizer_generator=Adam(learning_rate=ExponentialDecay(LEARNING_RATE, decay_steps=100000, decay_rate=0.1, staircase=True)),
-            optimizer_discriminator=Adam(learning_rate=ExponentialDecay(LEARNING_RATE, decay_steps=100000, decay_rate=0.1, staircase=True)),
+            optimizer_generator=Adam(learning_rate=learning_rate),
+            optimizer_discriminator=Adam(learning_rate=learning_rate),
             model=SRGANModel(self.hr_shape, self.lr_shape, self.channels)
         )
 
         self.checkpoint_manager = tf.train.CheckpointManager(
             checkpoint=self.checkpoint,
             directory=FINE_TUNE_CHECKPOINT_DIR,
-            max_to_keep=3
+            max_to_keep=1
         )
 
         # ***
@@ -461,12 +463,12 @@ if __name__ == '__main__':
     # ***
     # 1. pre-train generator (only)
     # ***
-    # pretrainer = Pretrainer()
-    # pretrainer.pretrain(epochs=1000, batch_size=4, sample_interval=1000)
+    pretrainer = Pretrainer()
+    pretrainer.pretrain(epochs=10, batch_size=1, sample_interval=5)
 
     # ***
     # 2. train generator and discriminator
     # ***
     # trainer = Trainer(use_pretrain_weights=True)  # use this parameter on very first training run (default: False)
-    trainer = Trainer()  # use this if you continue training (i.e. after interruption)
-    trainer.train(epochs=15000, batch_size=4, sample_interval=1000)
+    # trainer = Trainer()  # use this if you continue training (i.e. after interruption)
+    # trainer.train(epochs=15000, batch_size=4, sample_interval=1000)
