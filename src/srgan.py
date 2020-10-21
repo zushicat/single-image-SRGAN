@@ -126,9 +126,7 @@ class SRGANModel(tf.Module):  # regarding parameter: https://stackoverflow.com/a
         )
 
         vgg.trainable = False
-        for layer in vgg.layers:
-            layer.trainable = False
-
+        
         output_layer = 20  #  extract features from last convolution in Block 5 (layer 20) instead of block 3 (layer 9) as seen in some examples
         return Model(inputs=vgg.input, outputs=vgg.layers[output_layer].output)
 
@@ -151,7 +149,7 @@ class SRGANModel(tf.Module):  # regarding parameter: https://stackoverflow.com/a
             return x
 
         x_in = Input(shape=self.lr_shape)
-
+        
         # add preresidual block
         x = Conv2D(64, kernel_size=9, strides=1, padding='same')(x_in)
         x = x_1 = PReLU(shared_axes=[1, 2])(x)
@@ -162,7 +160,7 @@ class SRGANModel(tf.Module):  # regarding parameter: https://stackoverflow.com/a
 
         # add postresidual block
         x = Conv2D(64, kernel_size=3, strides=1, padding='same')(x)
-        x = BatchNormalization(momentum=0.8)(x)
+        x = BatchNormalization()(x)
         x = Add()([x, x_1])
 
         x = upsample(x)
@@ -262,7 +260,7 @@ class Pretrainer():
     @tf.function
     def pretrain_step(self, lr_img, hr_img):
         with tf.GradientTape() as tape:
-            hr_generated = self.checkpoint.model.generator(lr_img)
+            hr_generated = self.checkpoint.model.generator(lr_img, training=True)
             loss = self.loss(hr_img, hr_generated)
 
         gradients = tape.gradient(loss, self.checkpoint.model.generator.trainable_variables)
@@ -406,10 +404,10 @@ class Trainer():
     @tf.function
     def train_step(self, lr_img, hr_img):
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-            hr_generated = self.checkpoint.model.generator(lr_img)
+            hr_generated = self.checkpoint.model.generator(lr_img, training=True)
 
-            hr_output = self.checkpoint.model.discriminator(hr_img)
-            hr_generated_output = self.checkpoint.model.discriminator(hr_generated)
+            hr_output = self.checkpoint.model.discriminator(hr_img, training=True)
+            hr_generated_output = self.checkpoint.model.discriminator(hr_generated, training=True)
 
             content_loss = self.content_loss(hr_img, hr_generated)
             generator_loss = self.generator_loss(hr_generated_output)
