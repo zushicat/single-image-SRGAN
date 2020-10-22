@@ -46,7 +46,7 @@ import pickle
 from data_loader import DataLoader
 
 import tensorflow as tf
-from tensorflow.keras.layers import Add, BatchNormalization, Conv2D, Dense, Input, LeakyReLU, PReLU, UpSampling2D
+from tensorflow.keras.layers import Add, BatchNormalization, Conv2D, Dense, Input, LeakyReLU, Lambda, PReLU, UpSampling2D
 from tensorflow.keras.applications import VGG19
 from tensorflow.keras.applications.vgg19 import preprocess_input
 from tensorflow.keras.models import Model
@@ -331,14 +331,14 @@ class Trainer():
         # ***
         # save training in checkpoint
         # necessary to keep all values (i.e. optimizer) when interrupting & resuming training
-        # use scheduler with optimizer
+        # (use scheduler with optimizer -> not used)
         # ***
-        learning_rate = PiecewiseConstantDecay(boundaries=[100000], values=[1e-4, 1e-5]))
+        # learning_rate = PiecewiseConstantDecay(boundaries=[100000], values=[1e-4, 1e-5])
 
         self.checkpoint = tf.train.Checkpoint(
             step=tf.Variable(0),
-            optimizer_generator=Adam(learning_rate=learning_rate),
-            optimizer_discriminator=Adam(learning_rate=learning_rate),
+            optimizer_generator=Adam(learning_rate=LEARNING_RATE),
+            optimizer_discriminator=Adam(learning_rate=LEARNING_RATE),
             model=SRGANModel(self.hr_shape, self.lr_shape, self.channels)
         )
 
@@ -374,14 +374,25 @@ class Trainer():
     # ***
     # loss functions, used in training step
     # ***
+    @tf.function
     def content_loss(self, hr_img, hr_generated):
-        #hr_generated = preprocess_input(hr_generated)
-        #hr_img = preprocess_input(hr_img)
+        def preprocess_vgg(x):
+            '''
+            Input img RGB [-1, 1] -> BGR [0,255] plus subtracting mean BGR values: (103.939, 116.779, 123.68)
+            https://stackoverflow.com/a/46623958
+            '''
+            if isinstance(x, np.ndarray):
+                return preprocess_input((x+1)*127.5)
+            else:            
+                return Lambda(lambda x: preprocess_input(tf.add(x, 1) * 127.5), autocast=False)(x)  # autocast: float32 vs. float64
         
-        # de-normalize images to get vgg features: [-1, 1] -> [0, 255]
-        hr_generated = preprocess_input(((hr_generated + 1.0) * 255) / 2.0)
-        hr_img = preprocess_input(((hr_img + 1.0) * 255) / 2.0)
+        hr_generated = preprocess_vgg(hr_generated)
+        hr_img = preprocess_vgg(hr_img)
 
+        # ***
+        # / 12.75 normalizes feature values (Usually a good idea, but is it here?)
+        # Compare with: http://krasserm.github.io/2019/09/04/super-resolution/
+        # ***
         hr_generated_features = self.checkpoint.model.vgg(hr_generated) / 12.75
         hr_features = self.checkpoint.model.vgg(hr_img) / 12.75
 
@@ -411,10 +422,12 @@ class Trainer():
 
             content_loss = self.content_loss(hr_img, hr_generated)
             generator_loss = self.generator_loss(hr_generated_output)
+            
+            perceptual_loss = content_loss + 0.001 * generator_loss  # i.e. 0.136050597 + (0.001*12.2107553 ->) 0.0122107556
+
             discriminator_loss = self.discriminator_loss(hr_output, hr_generated_output)
             
-            perceptual_loss = content_loss + 0.001 * generator_loss
-            
+
         gradients_generator = gen_tape.gradient(perceptual_loss, self.checkpoint.model.generator.trainable_variables)
         gradients_discriminator = disc_tape.gradient(discriminator_loss, self.checkpoint.model.discriminator.trainable_variables)
 
@@ -445,15 +458,15 @@ class Trainer():
             # ***
             # save and/or dump
             # ***
-            if (epoch + 1) % 10 == 0:
-                print(f"{epoch + 1} | steps: {trained_steps} | g_loss: {perceptual_loss} | d_loss: {discriminator_loss} | time: {elapsed_time}")
-            if (epoch + 1) % sample_interval == 0:
-                print("   |---> save and make image sample")
-                self.checkpoint_manager.save()  # save checkpoint
-                self.checkpoint.model.generator.save(GENERATOR_MODEL)  # save complete model for actual usage
+            # if (epoch + 1) % 10 == 0:
+            #     print(f"{epoch + 1} | steps: {trained_steps} | g_loss: {perceptual_loss} | d_loss: {discriminator_loss} | time: {elapsed_time}")
+            # if (epoch + 1) % sample_interval == 0:
+            #     print("   |---> save and make image sample")
+            #     self.checkpoint_manager.save()  # save checkpoint
+            #     self.checkpoint.model.generator.save(GENERATOR_MODEL)  # save complete model for actual usage
 
-                # controle dump of predicted images: save in dirs named by trained_steps
-                self.utils.test_predict(self.checkpoint.model, self.data_loader, IMG_DIR_VAL_LR, trained_steps, "fine_tune")
+            #     # controle dump of predicted images: save in dirs named by trained_steps
+            #     self.utils.test_predict(self.checkpoint.model, self.data_loader, IMG_DIR_VAL_LR, trained_steps, "fine_tune")
         
 
 
@@ -461,12 +474,12 @@ if __name__ == '__main__':
     # ***
     # 1. pre-train generator (only)
     # ***
-    pretrainer = Pretrainer()
-    pretrainer.pretrain(epochs=10, batch_size=1, sample_interval=5)
+    # pretrainer = Pretrainer()
+    # pretrainer.pretrain(epochs=10, batch_size=1, sample_interval=5)
 
     # ***
     # 2. train generator and discriminator
     # ***
     # trainer = Trainer(use_pretrain_weights=True)  # use this parameter on very first training run (default: False)
-    # trainer = Trainer()  # use this if you continue training (i.e. after interruption)
-    # trainer.train(epochs=15000, batch_size=4, sample_interval=1000)
+    trainer = Trainer()  # use this if you continue training (i.e. after interruption)
+    trainer.train(epochs=1, batch_size=1, sample_interval=1)
