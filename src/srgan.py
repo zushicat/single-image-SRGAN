@@ -64,7 +64,7 @@ GENERATOR_MODEL = "../model/image_generator_model.h5"
 PRETRAINED_GENERATOR_CHECKPOINT_DIR = "../model/checkpoints/pre_train"
 FINE_TUNE_CHECKPOINT_DIR = "../model/checkpoints/fine_tune"
 
-IMG_DIR_VAL_LR = "/Users/karin/programming/SRGAN/Keras-Gan/train_test_images/images/default_test_images/lr_2"
+IMG_DIR_VAL_LR = "/Users/karin/programming/data/ortho-images/default_test_images/lr"
 IMG_DIR_PREDICTED = "../test_predictions"
 
 HR_CROPPED_IMG_SIZE = 96
