@@ -81,9 +81,8 @@ class Utils():
     # inference
     # ***************
     def test_predict(self, model, data_loader, lr_dir_path, trained_steps, sub_dir):
-        ''' Create prediction example of selected epoch '''
+        ''' Create prediction example of selected steps '''
         def create_img_dir(trained_steps):
-            ''' My default test dump '''
             save_img_dir = f"{IMG_DIR_PREDICTED}/{sub_dir}/{trained_steps}"
             if not os.path.exists(save_img_dir):
                 os.makedirs(save_img_dir)
