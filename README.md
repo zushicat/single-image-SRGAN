@@ -1,7 +1,7 @@
 # single-image-SRGAN
 Enhance low resolution single images with super-resolution GAN (scaled 4x).    
 
-This implementation is quite similar to the basic principles you'll find here: 
+This implementation is quite similar to the basic principles you'll find here:    
 https://github.com/krasserm/super-resolution    
 (I also recommend to take a look at: https://github.com/MathiasGruber/SRGAN-Keras)    
 
@@ -42,9 +42,10 @@ $ pipenv shell
 Change into directory /src.    
 
 There are 3 files:
-- data_loader.py: loads batches of image crops
-- srgan.py: model and training
+- data_loader.py: loads batches of image crops or a single image
+- srgan.py: models and training
 - inference.py: an example on how to predict images
+    
 
 - Use inference.py to enhance aerial images with the generator model in /models (change the script accordingly to your needs).
 - If you like to train your own image types
@@ -56,27 +57,30 @@ There are 3 files:
 
 ### Some remarks on the functionality
 #### data_loader.py
-In fact, it's quite important to know what goes in and what goes out. In this implementation, I assume that I work with quite big images (in fact, the ones I use are 1600x1600 pixel, loaded and stored in RGB mode), which I can divide beforehand into smaller ones in order to reduce computation time **during** training. (Meaning: I want the time consuming stuff out of my way during the model training.)    
-
+In fact, it's quite important to know what goes in and what goes out. In this implementation, I assume that I work with quite big images (in fact, the ones I use are 1600x1600 pixel, loaded and stored in RGB mode), which I can divide beforehand into smaller ones in order to reduce computation time **during** training.    
+(Meaning: I want the time consuming stuff out of my way during the model training.)    
+    
 Since the model is working with image crops anyways (here, I chose 96x96 pixel, but that's up to you) I expand the training set by theoretically using each image divide. (Some implementations i.e. use only the upper left area of each image.)    
-The "pre-crops" are 2 times bigger than the defined crop size (plus border). This takes the augmentation into account when i.e. after rotation the area at the borders must be filled. (The filling_mode is set to "reflect" which basically mirrors pixels into the empty areas, but, well, I want to stick with the original pixels.)    
-
-Augmentation on such small images is fast, hence it's fine to call augmentation of a random (crop) image batch on each training step.
-
+The "pre-crops" are 2 times bigger than the defined crop size (plus border). This takes the augmentation into account when i.e. after rotation the areas at the image borders must be filled.    
+(The filling_mode is set to "reflect" which basically mirrors pixels into the empty areas, but, well, I want to stick with the original pixels as close as possible.)    
+    
+Augmentation on such small images is fast, hence it's fine to call augmentation of a random (crop) image batch on each training step.    
+    
 Example calculation:
 - (i.e.) 200 images with 1600x1600 pixel
 - cop size 96x96 pixel
 - "pre-crop" size: 212x212 pixel
 - 7*7 -> 49 "pre-crops" per image
 - 49 * 200 -> 9800 train images (crops) for this image set
+    
 
-If you take the additional augmentation into account then this should be more than sufficiant for a proper training. (Assuming that the actual content of the images is sufficiently balanced.)
-
+If you take the additional augmentation into account then this should be sufficiant training data for a proper training. (Assuming that the actual content of the image crops is balanced well enough.)    
+    
 The steps are as followed:
 - load a defined number of high res images
-- divide each high res images in single crops (slightly bigger than the "real" defined crop size)
+- divide each high res images in single crop:2x (plus border) bigger than the "real" defined crop size
 - store all high res crops in list
-- augment a defined batch (number) of (randomly taken) high res crops and crop to defined "real" crop size
+- augment a defined batch (number) of randomly taken high res crops and crop to defined "real" crop size (randomly chosen within this bigger crop)
 - resize high res crop with defined scale factor to low res crop
 - normalize values of both images arrays from (0,255) to (-1,1)
 - return this batch on function call (i.e. from training function)
@@ -86,19 +90,19 @@ Granted, there are several different ways for proper data loading, which is abso
 
 #### srgan.py
 I pretty much (but not completely) followed the basic structure you can find in this repository: https://github.com/krasserm/super-resolution    
-(I highly recommend to take a closer look into this excellent implementation.)    
+(I highly recommend to take a closer look at this excellent implementation.)    
 
 There are 4 classes:
 - Utils: This is only used for creating predictions during defined training steps. (Just for a broad overview on the training process and not important for functionality.)
 - SRGANModel: Define generator and discriminator model and get the VGG model layers used for transfer leraning
-- Pretrainer: Train the generator (only) and store the training results in checkpoints and weights (latter use for first iteration of Trainer)
+- Pretrainer: Train the generator (only) and store the training results in checkpoints and weights (the latter is used for first iteration of Trainer)
 - Trainer: Train both generator and discriminator and store training results in checkpoints and model
 
 Pretrainer and Trainer certainly could be in one class (with slighlty different training calls) but for the sake of clarity I separated them. (If you take a look at both classes you'll see the code redundance. In this case, I decided that clarity trumps elegance.)    
 
 Otherwise, I tried to sufficiently comment the code.
 
-Training process of Pretrainer and Trainer (in the __main__ part):
+Training process of Pretrainer and Trainer (as implemented in the \__main\__ part of srgan.py):
 ```
 # ***
 # 1. pre-train generator (only)
