@@ -102,7 +102,7 @@ There are 4 classes:
 
 Pretrainer and Trainer certainly could be in one class (with slighlty different training calls) but for the sake of clarity I separated them. (If you take a look at both classes you'll see the code redundance. In this case, I decided that clarity trumps elegance.)    
 
-Otherwise, I tried to sufficiently comment the code.
+Otherwise, I tried to sufficiently comment the code and hope this is clear enough for an understanding of what's going on.
 
 Training process of Pretrainer and Trainer (as implemented in the \__main\__ part of srgan.py):
 ```
