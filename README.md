@@ -104,7 +104,7 @@ Pretrainer and Trainer certainly could be in one class (with slighlty different 
 
 Otherwise, I tried to sufficiently comment the code and hope this is clear enough for an understanding of what's going on.
 
-Training process of Pretrainer and Trainer (as implemented in the \__main\__ part of srgan.py):
+Calling the training process of Pretrainer and Trainer (as implemented in the \__main\__ part of srgan.py):
 ```
 # ***
 # 1. pre-train generator (only)
