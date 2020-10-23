@@ -78,7 +78,7 @@ If you take the additional augmentation into account then this should be suffici
     
 The steps are as followed:
 - load a defined number of high res images
-- divide each high res images in single crop:2x (plus border) bigger than the "real" defined crop size
+- divide each high res images in single crops: 2x (plus border) bigger than the "real" defined crop size
 - store all high res crops in list
 - augment a defined batch (number) of randomly taken high res crops and crop to defined "real" crop size (randomly chosen within this bigger crop)
 - resize high res crop with defined scale factor to low res crop
