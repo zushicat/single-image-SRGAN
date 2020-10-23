@@ -12,8 +12,8 @@ The stored (trained) model (/model/image_generator_model.h5) aims to improve aer
 ### Examples
 Resolution of input image  |  Input images             |  Output images (resized to 400x400 pixel)
 :-------------------------:|:-------------------------:|:-------------------------:
-300x300 pixel              |![]<img src="readme_images/input_300.png" width="400" /> |  ![](readme_images/output_300.png)
-200x200 pixel              |![](readme_images/input_200.png | width=400px) |  ![](readme_images/output_200.png)
+300x300 pixel              |<img src="readme_images/input_300.png" width="400" /> |  ![](readme_images/output_300.png)
+200x200 pixel              |![](readme_images/input_200.png width=400px) |  ![](readme_images/output_200.png)
 150x150 pixel              |![](readme_images/input_150.png) |  ![](readme_images/output_150.png)
 100x100 pixel              |![](readme_images/input_100.png]) |  ![](readme_images/output_100.png)
 
