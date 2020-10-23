@@ -47,12 +47,13 @@ There are 3 files:
 - inference.py: an example on how to predict images
     
 
-- Use inference.py to enhance aerial images with the generator model in /models (change the script accordingly to your needs).
-- If you like to train your own image types
-    - change the high-res image path (global variable BASE_PATH) in data_loader.py
-    - define the global variables (i.e. paths) in srgan.py accordingly to your needs
-    - pre-train the model (train generator, only)
-    - train the model (train both generator and discriminator)
+Use inference.py to enhance aerial images with the generator model in /models (change the script accordingly to your needs).    
+
+If you like to train your own image types
+- change the high-res image path (global variable BASE_PATH) in data_loader.py
+- define the global variables (i.e. paths) in srgan.py accordingly to your needs
+- pre-train the model (train generator, only)
+- train the model (train both generator and discriminator)
 
 
 ### Some remarks about the functionality
