@@ -55,7 +55,7 @@ There are 3 files:
     - train the model (train both generator and discriminator)
 
 
-### Some remarks on the functionality
+### Some remarks about the functionality
 #### data_loader.py
 In fact, it's quite important to know what goes in and what goes out. In this implementation, I assume that I work with quite big images (in fact, the ones I use are 1600x1600 pixel, loaded and stored in RGB mode), which I can divide beforehand into smaller ones in order to reduce computation time **during** training.    
 (Meaning: I want the time consuming stuff out of my way during the model training.)    
