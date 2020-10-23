@@ -125,10 +125,11 @@ class SRGANModel(tf.Module):  # regarding parameter: https://stackoverflow.com/a
             include_top=False
         )
 
-        vgg.trainable = False
-        
-        output_layer = 20  #  extract features from last convolution in Block 5 (layer 20) instead of block 3 (layer 9) as seen in some examples
-        return Model(inputs=vgg.input, outputs=vgg.layers[output_layer].output)
+        output_layer = 20
+        model = Model(inputs=vgg.input, outputs=vgg.layers[output_layer].output)
+        model.trainable = False
+
+        return model
 
 
     def build_generator(self, num_filters=64, num_res_blocks=16):
@@ -224,7 +225,7 @@ class Pretrainer():
         # ***
         # model, loss and optimizer
         # ***
-        self.loss = MeanSquaredError()
+        self.mse_loss = MeanSquaredError()
         
         # ***
         # save training in checkpoint
@@ -261,12 +262,12 @@ class Pretrainer():
     def pretrain_step(self, lr_img, hr_img):
         with tf.GradientTape() as tape:
             hr_generated = self.checkpoint.model.generator(lr_img, training=True)
-            loss = self.loss(hr_img, hr_generated)
+            mse_loss = self.mse_loss(hr_img, hr_generated)
 
-        gradients = tape.gradient(loss, self.checkpoint.model.generator.trainable_variables)
+        gradients = tape.gradient(mse_loss, self.checkpoint.model.generator.trainable_variables)
         self.checkpoint.optimizer.apply_gradients(zip(gradients, self.checkpoint.model.generator.trainable_variables))
 
-        return loss
+        return mse_loss
 
 
     def pretrain(self, epochs=10, batch_size=1, sample_interval=2):
@@ -280,7 +281,7 @@ class Pretrainer():
             # train on batch
             # ***
             imgs_hr, imgs_lr = self.data_loader.load_data(batch_size=batch_size)
-            loss = self.pretrain_step(imgs_lr, imgs_hr)
+            mse_loss = self.pretrain_step(imgs_lr, imgs_hr)
 
             elapsed_time = datetime.datetime.now() - start_time  # for controle dump/log only
 
@@ -288,7 +289,7 @@ class Pretrainer():
             # save and/or dump
             # ***
             if (epoch + 1) % 10 == 0:
-                print(f"{epoch + 1} | steps: {trained_steps} | loss: {loss} | time: {elapsed_time}")
+                print(f"{epoch + 1} | steps: {trained_steps} | loss: {mse_loss} | time: {elapsed_time}")
             if (epoch + 1) % sample_interval == 0:
                 print("   |---> save and make image sample")
                 self.checkpoint_manager.save()  # save checkpoint
@@ -390,11 +391,13 @@ class Trainer():
         hr_img = preprocess_vgg(hr_img)
 
         # ***
-        # / 12.75 normalizes feature values (Usually a good idea, but is it here?)
+        # alternatively:
+        # both hr_generated_features and hr_features: divide / 12.75 
+        # -> normalizes feature values (Usually a good idea, but is it here?)
         # Compare with: http://krasserm.github.io/2019/09/04/super-resolution/
         # ***
-        hr_generated_features = self.checkpoint.model.vgg(hr_generated) / 12.75
-        hr_features = self.checkpoint.model.vgg(hr_img) / 12.75
+        hr_generated_features = self.checkpoint.model.vgg(hr_generated)
+        hr_features = self.checkpoint.model.vgg(hr_img)
 
         return self.loss_mse(hr_features, hr_generated_features)
 
@@ -423,7 +426,11 @@ class Trainer():
             content_loss = self.content_loss(hr_img, hr_generated)
             generator_loss = self.generator_loss(hr_generated_output)
             
-            perceptual_loss = content_loss + 0.001 * generator_loss  # i.e. 0.136050597 + (0.001*12.2107553 ->) 0.0122107556
+            # ***
+            # alternatively: if / 12.75 in content_loss fct. (see comment), then as followed
+            # perceptual_loss = content_loss + 0.001 * generator_loss  # i.e. 0.136050597 + (0.001*12.2107553 ->) 0.0122107556
+            # ***
+            perceptual_loss = content_loss + generator_loss
 
             discriminator_loss = self.discriminator_loss(hr_output, hr_generated_output)
             
@@ -458,19 +465,26 @@ class Trainer():
             # ***
             # save and/or dump
             # ***
-            # if (epoch + 1) % 10 == 0:
-            #     print(f"{epoch + 1} | steps: {trained_steps} | g_loss: {perceptual_loss} | d_loss: {discriminator_loss} | time: {elapsed_time}")
-            # if (epoch + 1) % sample_interval == 0:
-            #     print("   |---> save and make image sample")
-            #     self.checkpoint_manager.save()  # save checkpoint
-            #     self.checkpoint.model.generator.save(GENERATOR_MODEL)  # save complete model for actual usage
+            if (epoch + 1) % 10 == 0:
+                print(f"{epoch + 1} | steps: {trained_steps} | g_loss: {perceptual_loss} | d_loss: {discriminator_loss} | time: {elapsed_time}")
+            if (epoch + 1) % sample_interval == 0:
+                print("   |---> save and make image sample")
+                self.checkpoint_manager.save()  # save checkpoint
+                self.checkpoint.model.generator.save(GENERATOR_MODEL)  # save complete model for actual usage
 
-            #     # controle dump of predicted images: save in dirs named by trained_steps
-            #     self.utils.test_predict(self.checkpoint.model, self.data_loader, IMG_DIR_VAL_LR, trained_steps, "fine_tune")
+                # controle dump of predicted images: save in dirs named by trained_steps
+                self.utils.test_predict(self.checkpoint.model, self.data_loader, IMG_DIR_VAL_LR, trained_steps, "fine_tune")
         
 
 
 if __name__ == '__main__':
+    '''
+    Note: 
+    Technically, what I call epochs in the training function calls are not epochs since this would mean to use all 
+    stored image crops from the training set, when in fact I call for a newly augmented batch of randomly 
+    selected image crops in every training round. 
+    But for now, I'll just leave it like that.
+    '''
     # ***
     # 1. pre-train generator (only)
     # ***
@@ -480,6 +494,6 @@ if __name__ == '__main__':
     # ***
     # 2. train generator and discriminator
     # ***
-    # trainer = Trainer(use_pretrain_weights=True)  # use this parameter on very first training run (default: False)
-    trainer = Trainer()  # use this if you continue training (i.e. after interruption)
+    trainer = Trainer(use_pretrain_weights=True)  # use this parameter on very first training run (default: False)
+    # trainer = Trainer()  # use this if you continue training (i.e. after interruption)
     trainer.train(epochs=1, batch_size=1, sample_interval=1)

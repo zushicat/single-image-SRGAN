@@ -50,10 +50,10 @@ class DataLoader():
         random_img_path_selection = np.random.choice(self.image_paths, size=200)
 
         # ***
-        # get the (bigger) image crops of all high res images
+        # divide high res images: get (bigger) image crops of all high res images
         # ***
         for img_path in random_img_path_selection:
-            img = load_img(img_path)  # type: PIL image
+            img = load_img(img_path)  # type: PIL image in RGB
 
             left = 0
             upper = 0
@@ -82,7 +82,7 @@ class DataLoader():
         return img.crop((upper_left, upper_left, lower_right, lower_right))
 
 
-    def load_data(self, batch_size=1, is_testing=False):
+    def load_data(self, batch_size=1):
         # ***
         # initial image load
         # ***
@@ -101,7 +101,7 @@ class DataLoader():
             batch_images.append(self.images[index])
         
         # ***
-        # augment and store this crops of this batch
+        # augment and store the crops of this batch
         # ***
         imgs_hr = []
         imgs_lr = []
@@ -109,28 +109,28 @@ class DataLoader():
             # ***
             # image augmentation
             # ***
-            if is_testing is False:
-                data = np.expand_dims(img_to_array(img_hr), 0)
-                it = self.datagen.flow(data, batch_size=1)
-                augmented_img_np_array = it.next()[0].astype('uint8')
-                img_hr = Image.fromarray(augmented_img_np_array)
-
-                img_hr = self.crop_image(img_hr)
-                #img_hr.show()  # debug
+            data = np.expand_dims(img_to_array(img_hr), 0)
+            it = self.datagen.flow(data, batch_size=1)
+            augmented_img_np_array = it.next()[0].astype('uint8')
             
+            img_hr = Image.fromarray(augmented_img_np_array)
+            img_hr = self.crop_image(img_hr)
+            #img_hr.show()  # debug
+            
+            # ***
+            # create low res image (crop)
+            # ***
             img_lr = img_hr.resize((self.crop_size//self.scale_factor, self.crop_size//self.scale_factor), Image.BICUBIC)
             # img_lr.show()  # debug
-
-            # reduce quality of incoming image (approx. how a real low-res image would look like)
-            img_lr = img_lr.resize((img_lr.width//2, img_lr.height//2), Image.BICUBIC)  # downscale
-            img_lr = img_lr.resize((img_lr.width*2, img_lr.height*2))  # upscale again
-            # img_lr.show()  # debug
-
+            
+            # ***
+            # store both in arrays
+            # ***
             imgs_hr.append(np.asarray(img_hr))
             imgs_lr.append(np.asarray(img_lr))
 
         # ***
-        # normalize: -1, 1
+        # normalize: [0, 255] -> [-1, 1]
         # ***
         imgs_hr = np.array(imgs_hr) / 127.5 - 1.
         imgs_lr = np.array(imgs_lr) / 127.5 - 1.
