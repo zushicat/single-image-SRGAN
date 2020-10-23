@@ -69,8 +69,7 @@ Augmentation on such small images is fast, hence it's fine to call augmentation 
     
 Example calculation:
 - (i.e.) 200 images with 1600x1600 pixel
-- cop size 96x96 pixel
-- "pre-crop" size: 212x212 pixel
+- cop size 96x96 pixel -> "pre-crop" size: 212x212 pixel
 - 7*7 -> 49 "pre-crops" per image
 - 49 * 200 -> 9800 train images (crops) for this image set
     
