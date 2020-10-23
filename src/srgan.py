@@ -332,9 +332,10 @@ class Trainer():
         # ***
         # save training in checkpoint
         # necessary to keep all values (i.e. optimizer) when interrupting & resuming training
-        # (use scheduler with optimizer -> not used)
         # ***
+        # using a scheduler with the optimizer might be a good idea (not used right now)
         # learning_rate = PiecewiseConstantDecay(boundaries=[100000], values=[1e-4, 1e-5])
+        # ***
 
         self.checkpoint = tf.train.Checkpoint(
             step=tf.Variable(0),
@@ -385,19 +386,17 @@ class Trainer():
             if isinstance(x, np.ndarray):
                 return preprocess_input((x+1)*127.5)
             else:            
-                return Lambda(lambda x: preprocess_input(tf.add(x, 1) * 127.5), autocast=False)(x)  # autocast: float32 vs. float64
+                return Lambda(lambda x: preprocess_input(tf.add(x, 1) * 127.5), autocast=False)(x)  # autocast: tf 2.something / float32 vs. float64 with Lambda
         
         hr_generated = preprocess_vgg(hr_generated)
         hr_img = preprocess_vgg(hr_img)
 
         # ***
-        # alternatively:
-        # both hr_generated_features and hr_features: divide / 12.75 
-        # -> normalizes feature values (Usually a good idea, but is it here?)
-        # Compare with: http://krasserm.github.io/2019/09/04/super-resolution/
+        # normalize feature values by divide / 12.75 (Usually a good idea, but is it here? Well... I guess?)
+        # Compare with: http://krasserm.github.io/2019/09/04/super-resolution/ (train.py)
         # ***
-        hr_generated_features = self.checkpoint.model.vgg(hr_generated)
-        hr_features = self.checkpoint.model.vgg(hr_img)
+        hr_generated_features = self.checkpoint.model.vgg(hr_generated)/12.75 
+        hr_features = self.checkpoint.model.vgg(hr_img)/12.75 
 
         return self.loss_mse(hr_features, hr_generated_features)
 
@@ -427,11 +426,10 @@ class Trainer():
             generator_loss = self.generator_loss(hr_generated_output)
             
             # ***
-            # alternatively: if / 12.75 in content_loss fct. (see comment), then as followed
-            # perceptual_loss = content_loss + 0.001 * generator_loss  # i.e. 0.136050597 + (0.001*12.2107553 ->) 0.0122107556
+            # see also: feature normalization in content_loss
             # ***
-            perceptual_loss = content_loss + generator_loss
-
+            perceptual_loss = content_loss + 0.001 * generator_loss  # i.e. 0.136050597 + (0.001*12.2107553 ->) 0.0122107556
+            
             discriminator_loss = self.discriminator_loss(hr_output, hr_generated_output)
             
 
@@ -489,11 +487,11 @@ if __name__ == '__main__':
     # 1. pre-train generator (only)
     # ***
     # pretrainer = Pretrainer()
-    # pretrainer.pretrain(epochs=10, batch_size=1, sample_interval=5)
+    # pretrainer.pretrain(epochs=100000, batch_size=4, sample_interval=20000)
 
     # ***
     # 2. train generator and discriminator
     # ***
     trainer = Trainer(use_pretrain_weights=True)  # use this parameter on very first training run (default: False)
     # trainer = Trainer()  # use this if you continue training (i.e. after interruption)
-    trainer.train(epochs=1, batch_size=1, sample_interval=1)
+    trainer.train(epochs=50000, batch_size=4, sample_interval=10000)
