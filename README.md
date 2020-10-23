@@ -1,7 +1,8 @@
 # single-image-SRGAN
 Enhance low resolution single images with super-resolution GAN (scaled 4x).    
 
-This implementation is quite similar to the basic principles you'll find here: https://github.com/krasserm/super-resolution    
+This implementation is quite similar to the basic principles you'll find here: 
+https://github.com/krasserm/super-resolution    
 (I also recommend to take a look at: https://github.com/MathiasGruber/SRGAN-Keras)    
 
 You will find more useful links in the top comment section of srgan.py.
@@ -10,7 +11,7 @@ The stored (trained) model (/model/image_generator_model.h5) aims to improve aer
 
 
 ### Examples
-Both input and output images are resized to 400x400 pixel.    
+Both input and output images are resized to 400x400 pixel (for comparison).    
 
 Resolution of input image  |  Input images             |  Output images
 :-------------------------:|:-------------------------:|:-------------------------:
@@ -18,6 +19,14 @@ Resolution of input image  |  Input images             |  Output images
 200x200 pixel              |<img src="readme_images/input_200.png" width="400" /> |  ![](readme_images/output_200.png)
 150x150 pixel              |<img src="readme_images/input_150.png" width="400" /> |  ![](readme_images/output_150.png)
 100x100 pixel              |<img src="readme_images/input_100.png" width="400" /> |  ![](readme_images/output_100.png)
+
+
+**Training of /model/image_generator_model.h5:**   
+- high res images: 1600x1600 pixel
+- high res image crops: 96x96 pixel
+- low res images: high res crops scaled down by factor 4 (24x24 pixel)
+- Pretaining (generator only): 400000 training steps
+- Training (generator and discriminator): 600000 training steps
 
 
 ### Usage
