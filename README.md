@@ -82,7 +82,7 @@ The steps are as followed:
 - store all high res crops in list
 
 On function call (i.e. from training function):
-- augment a defined batch (number) of randomly taken high res crops and crop to defined "real" crop size (randomly chosen within this bigger crop)
+- augment a defined batch (number) of randomly taken high res "pre-crops" and crop to defined "real" crop size (randomly chosen within this bigger crop)
 - resize high res crop with defined scale factor to low res crop
 - normalize values of both images arrays from (0,255) to (-1,1)
 - return this batch
