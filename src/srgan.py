@@ -224,7 +224,7 @@ class Pretrainer():
         # ***
         # model, loss and optimizer
         # ***
-        self.mse_loss = MeanSquaredError()
+        self.mse = MeanSquaredError()
         
         # ***
         # save training in checkpoint
@@ -261,7 +261,7 @@ class Pretrainer():
     def pretrain_step(self, lr_img, hr_img):
         with tf.GradientTape() as tape:
             hr_generated = self.checkpoint.model.generator(lr_img, training=True)
-            mse_loss = self.mse_loss(hr_img, hr_generated)
+            mse_loss = self.mse(hr_img, hr_generated)
 
         gradients = tape.gradient(mse_loss, self.checkpoint.model.generator.trainable_variables)
         self.checkpoint.optimizer.apply_gradients(zip(gradients, self.checkpoint.model.generator.trainable_variables))
@@ -325,8 +325,8 @@ class Trainer():
         # ***
         # loss
         # ***
-        self.loss_binary_crossentropy = BinaryCrossentropy(from_logits=False)
-        self.loss_mse = MeanSquaredError()
+        self.binary_crossentropy = BinaryCrossentropy(from_logits=False)
+        self.mse = MeanSquaredError()
 
         # ***
         # save training in checkpoint
@@ -397,16 +397,16 @@ class Trainer():
         hr_generated_features = self.checkpoint.model.vgg(hr_generated)/12.75 
         hr_features = self.checkpoint.model.vgg(hr_img)/12.75 
 
-        return self.loss_mse(hr_features, hr_generated_features)
+        return self.mse(hr_features, hr_generated_features)
 
 
     def generator_loss(self, hr_generated_output):
-        return self.loss_binary_crossentropy(tf.ones_like(hr_generated_output), hr_generated_output)
+        return self.binary_crossentropy(tf.ones_like(hr_generated_output), hr_generated_output)
 
 
     def discriminator_loss(self, hr_output, hr_generated_output):
-        hr_loss = self.loss_binary_crossentropy(tf.ones_like(hr_output), hr_output)
-        hr_generated_loss = self.loss_binary_crossentropy(tf.zeros_like(hr_generated_output), hr_generated_output)
+        hr_loss = self.binary_crossentropy(tf.ones_like(hr_output), hr_output)
+        hr_generated_loss = self.binary_crossentropy(tf.zeros_like(hr_generated_output), hr_generated_output)
         
         return hr_loss + hr_generated_loss
 
