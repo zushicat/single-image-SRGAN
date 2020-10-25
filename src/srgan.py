@@ -400,7 +400,7 @@ class Trainer():
         return self.mse(hr_features, hr_generated_features)
 
 
-    def generator_loss(self, hr_generated_output):
+    def generator_loss(self, hr_generated_output):  # adversarial loss
         return self.binary_crossentropy(tf.ones_like(hr_generated_output), hr_generated_output)
 
 
