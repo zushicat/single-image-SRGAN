@@ -11,14 +11,22 @@ The stored (trained) model (/model/image_generator_model.h5) aims to improve aer
 
 
 ### Examples
-Both input and output images are resized to 400x400 pixel (for comparison).    
+Both input and output images are resized to 600x600 pixel (for comparison).    
 
 Resolution of input image  |  Input images             |  Output images
 :-------------------------:|:-------------------------:|:-------------------------:
-300x300 pixel              |<img src="readme_images/input_300.png" width="400" /> |  ![](readme_images/output_300.png)
-200x200 pixel              |<img src="readme_images/input_200.png" width="400" /> |  ![](readme_images/output_200.png)
-150x150 pixel              |<img src="readme_images/input_150.png" width="400" /> |  ![](readme_images/output_150.png)
-100x100 pixel              |<img src="readme_images/input_100.png" width="400" /> |  ![](readme_images/output_100.png)
+400x400 pixel              |<img src="readme_images/input_400.png" width="600" /> |  ![](readme_images/output_400.png)
+300x300 pixel              |<img src="readme_images/input_300.png" width="600" /> |  ![](readme_images/output_300.png)
+200x200 pixel              |<img src="readme_images/input_200.png" width="600" /> |  ![](readme_images/output_200.png)
+150x150 pixel              |<img src="readme_images/input_150.png" width="600" /> |  ![](readme_images/output_150.png)
+100x100 pixel              |<img src="readme_images/input_100.png" width="600" /> |  ![](readme_images/output_100.png)
+
+
+Comaprison of generated image from input 400x400 pixel and original image (Both resized to 600x600 pixel from 1600x1600 pixel).    
+
+Generated  |  Original        
+:-------------------------:|:-------------------------:
+![](readme_images/output_400.png) | ![](readme_images/original.png)
 
 
 **Training of /model/image_generator_model.h5:**   
