@@ -12,8 +12,8 @@ MODEL = "../model/image_generator_model.h5"
 FILE_INPUT_PATH = "/Users/karin/programming/data/ortho-images/default_test_images/lr"
 FILE_OUTPUT_PATH = "../test_predictions/model_predictions"
 
-IMAGE_IN_SIZE = 100
-IMAGE_OUT_SIZE = 400
+IMAGE_IN_SIZE = 400
+IMAGE_OUT_SIZE = 600
 
 
 if __name__ == "__main__":
