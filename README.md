@@ -13,18 +13,17 @@ The stored (trained) model (/model/image_generator_model.h5) aims to improve aer
 ### Examples
 Resolution of input image  |                    Input images                    |                    Output images
 :-------------------------:|:--------------------------------------------------:|:-------------------------:
-400x400 pixel              |<img src="readme_images/input_400.png" width="600" />|  ![](readme_images/output_400.png)
-300x300 pixel              |<img src="readme_images/input_300.png" width="600" />|  ![](readme_images/output_300.png)
-200x200 pixel              |<img src="readme_images/input_200.png" width="600" />|  ![](readme_images/output_200.png)
-150x150 pixel              |<img src="readme_images/input_150.png" width="600" />|  ![](readme_images/output_150.png)
-100x100 pixel              |<img src="readme_images/input_100.png" width="600" />|  ![](readme_images/output_100.png)
+400x400 pixel              |<img src="readme_images/cropped/input_400.png" width="300" />|![](readme_images/cropped/output_400.png)
+300x300 pixel              |<img src="readme_images/cropped/input_300.png" width="300" />|![](readme_images/cropped/output_300.png)
+200x200 pixel              |<img src="readme_images/cropped/input_200.png" width="300" />|![](readme_images/cropped/output_200.png)
+150x150 pixel              |<img src="readme_images/cropped/input_150.png" width="300" />|![](readme_images/cropped/output_150.png)
+100x100 pixel              |<img src="readme_images/cropped/input_100.png" width="300" />|![](readme_images/cropped/output_100.png)
 
 
-Comaprison of generated image from input image with 400x400 pixel and original image (both resized to 600x600 pixel from 1600x1600 pixel).    
-
-                    Generated                    |                    Original        
+ 
+    Generated (input 400x400 pixel)              |                    Original        
 :-----------------------------------------------:|:-------------------------:
-![](readme_images/output_400.png)                | ![](readme_images/original.png)
+![](readme_images/cropped/output_400.png)         | ![](readme_images/cropped/original.png)
 
 
 **Training of /model/image_generator_model.h5:**   
