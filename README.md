@@ -64,7 +64,7 @@ If you like to train your own image types
 ### Some remarks about the functionality
 #### data_loader.py
 In fact, it's quite important to know what goes in and what goes out. In this implementation, I assume that I work with quite big images (in fact, the ones I use are 1600x1600 pixel, loaded and stored in RGB mode), which I can divide beforehand into smaller ones in order to reduce computation time **during** training.    
-(Meaning: I want the time consuming stuff out of my way during the model training.)    
+(Meaning: I want time consuming image processing stuff out of my way during the model training.)    
     
 Since the model is working with image crops anyway (here, I chose 96x96 pixel, but that's up to you) I expand the training set by theoretically using each image divide. (Some implementations i.e. use only the upper left area of each image.)    
 The "pre-crops" are 2 times bigger than the defined crop size (plus border). This takes the augmentation into account when i.e. after rotation the areas at the image borders must be filled.    
