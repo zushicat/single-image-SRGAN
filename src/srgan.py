@@ -391,7 +391,7 @@ class Trainer():
         hr_img = preprocess_vgg(hr_img)
 
         # ***
-        # normalize feature values by divide / 12.75 (Usually a good idea, but is it here? Well... I guess?)
+        # VGG scaled with 1/12.75 as in paper
         # Compare with: http://krasserm.github.io/2019/09/04/super-resolution/ (train.py)
         # ***
         hr_generated_features = self.checkpoint.model.vgg(hr_generated)/12.75 
@@ -424,9 +424,6 @@ class Trainer():
             content_loss = self.content_loss(hr_img, hr_generated)
             generator_loss = self.generator_loss(hr_generated_output)
             
-            # ***
-            # see also: feature normalization in content_loss
-            # ***
             perceptual_loss = content_loss + 0.001 * generator_loss  # i.e. 0.136050597 + (0.001*12.2107553 ->) 0.0122107556
             
             discriminator_loss = self.discriminator_loss(hr_output, hr_generated_output)
