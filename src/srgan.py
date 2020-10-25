@@ -424,7 +424,8 @@ class Trainer():
             content_loss = self.content_loss(hr_img, hr_generated)
             generator_loss = self.generator_loss(hr_generated_output)
             
-            perceptual_loss = content_loss + 0.001 * generator_loss  # i.e. 0.136050597 + (0.001*12.2107553 ->) 0.0122107556
+            # compare: https://medium.com/@jonathan_hui/gan-super-resolution-gan-srgan-b471da7270ec -> loss function
+            perceptual_loss = content_loss + 0.001 * generator_loss
             
             discriminator_loss = self.discriminator_loss(hr_output, hr_generated_output)
             
