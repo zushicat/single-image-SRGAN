@@ -7,7 +7,10 @@ https://github.com/krasserm/super-resolution
 
 You will find more useful links in the top comment section of srgan.py.
 
-The stored (trained) model (/model/image_generator_model.h5) aims to improve aerial photographs, but since this is an universal approach, you can train your own model on image types you intend to improve.  
+The stored (trained) model (/model/image_generator_model.h5) aims to improve aerial photographs, but since this is an universal approach, you can train your own model on image types you intend to improve.   
+
+**NOTE**    
+There is a modified version for enhanced super-resolution ESRGAN available: https://github.com/zushicat/single-image-ESRGAN
 
 
 ### Examples
@@ -93,6 +96,11 @@ On function call (i.e. from training function):
 - return this batch
 
 Granted, there are several different ways for proper data loading, which is absolutely fine as long as batches are returned in the correct format (RGB and normalized to values between (-1,1)).
+
+**NOTE**    
+Please check out this slightly modified version of data_loader.py: https://github.com/zushicat/single-image-ESRGAN    
+Using additionally "pre-crops" of downscaled high res images seems to improve the quality of generated images (although I didn't measure the results).    
+(I used this modified input for ESRGAN training, only. But maybe you are interested in testing this with SRGAN.)
 
 
 #### srgan.py
